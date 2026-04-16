@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --color-zalando-orange: #FF6900;
+  --color-zalando-dark: #121212;
+  --color-zalando-grey: #666666;
+  --color-zalando-soft: #F5F5F5;
+}
+
+@layer base {
+  body {
+    @apply bg-zalando-soft text-zalando-dark;
+  }
+}
