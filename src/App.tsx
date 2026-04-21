@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { motion, AnimatePresence } from "motion/react";
 import { Send, User, Bot, RefreshCcw, ClipboardList, AlertCircle, ShoppingBag, Package, Truck, Ruler, FileText, ChevronRight } from "lucide-react";
@@ -77,8 +77,13 @@ export default function App() {
   const aiRef = useRef<GoogleGenAI | null>(null);
 
   useEffect(() => {
-    aiRef.current = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-    startConversation();
+    const key = process.env.GEMINI_API_KEY;
+    if (key) {
+      aiRef.current = new GoogleGenAI({ apiKey: key });
+      startConversation();
+    } else {
+      setError("Falta la GEMINI_API_KEY. Por favor, configúrela.");
+    }
   }, []);
 
   useEffect(() => {
@@ -91,9 +96,10 @@ export default function App() {
   }, [messages, isLoading]);
 
   const startConversation = async () => {
+    if (!aiRef.current) return;
     setIsLoading(true);
     try {
-      const response = await aiRef.current!.models.generateContent({
+      const response = await aiRef.current.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: [{ role: 'user', parts: [{ text: "Hola, soy un cliente de Zalando y necesito ayuda. Por favor, inicia el protocolo de soporte." }] }],
         config: {
@@ -106,13 +112,17 @@ export default function App() {
       setIsAuthReady(true);
     } catch (err) {
       console.error("Error starting conversation:", err);
-      setError("No se pudo conectar con el servidor de Zalando. Por favor, verifique su conexión.");
+      setError("No se pudo conectar con el servidor. Verifique su conexión y la API Key.");
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSend = async (customText?: string) => {
+    if (!aiRef.current) {
+      setError("El asistente no está inicializado.");
+      return;
+    }
     const textToSend = customText || input;
     if (!textToSend.trim() || isLoading) return;
 
@@ -128,7 +138,7 @@ export default function App() {
     }));
 
     try {
-      const response = await aiRef.current!.models.generateContent({
+      const response = await aiRef.current.models.generateContent({
         model: "gemini-3-flash-preview",
         contents: [
           ...history,
@@ -136,7 +146,7 @@ export default function App() {
         ],
         config: {
           systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.1, // Mas deterministico para soporte
+          temperature: 0.1, 
         },
       });
 
