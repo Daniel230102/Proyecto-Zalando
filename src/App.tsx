@@ -77,12 +77,12 @@ export default function App() {
   const aiRef = useRef<GoogleGenAI | null>(null);
 
   useEffect(() => {
-    const key = process.env.GEMINI_API_KEY;
-    if (key) {
+    const key = process.env.GEMINI_API_KEY || import.meta.env.VITE_GEMINI_API_KEY;
+    if (key && key !== '') {
       aiRef.current = new GoogleGenAI({ apiKey: key });
       startConversation();
     } else {
-      setError("Falta la GEMINI_API_KEY. Por favor, configúrela.");
+      setError("Falta la GEMINI_API_KEY. Por favor, configúrela en el panel de Vercel y haga un 'Redeploy'.");
     }
   }, []);
 
